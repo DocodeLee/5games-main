@@ -34,3 +34,9 @@ surface.get_frect(pos)
 ## keys = pygame.key.get_pressed()
 ## if keys[pygame.K_1]:
 ##   print(1)
+
+# Sprites
+## inbuild pygame class that always contains a surface and a rect
+## pygame.sprite.Sprite
+
+## blit is for each surface, for group draw will be better
