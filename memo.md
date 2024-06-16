@@ -48,3 +48,10 @@ surface.get_frect(pos)
 
 ## custom timer
 ## capture the time start of game
+
+
+# At the laser and meteor collide
+##  pygame.sprite.groupcollide(laser_sprites, meteor_sprites,True, True) i used this code
+## but lecture showed 
+## for laser in laser_sprites:
+##      pygame.sprite.spritecollide(lase,meteor_sprites,True)

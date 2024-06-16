@@ -9,12 +9,12 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.image.load('images/player.png').convert_alpha()
         self.rect =  self.image.get_frect(center=(window_width / 2, window_height / 2))
         self.direction = pygame.math.Vector2()
-        self.speed = 300
+        self.speed = 500
         
         # cooldown
         self.can_shoot =True
         self.laser_shoot_time = 0
-        self.cooldown_duration = 400
+        self.cooldown_duration = 200
     
     def laser_timer(self):
         if not self.can_shoot:
@@ -22,7 +22,19 @@ class Player(pygame.sprite.Sprite):
             current_time = pygame.time.get_ticks()
             if current_time - self.laser_shoot_time >= self.cooldown_duration:
                 self.can_shoot = True
+    
+    def movement(self):
+        if self.rect.bottom > window_height :
+            self.rect.bottom = window_height
+        if self.rect.top < 0 :
+            self.rect.top = 0
+        if self.rect.right > window_width:
+            self.rect.right = window_width
+        if self.rect.left< 0 :
+            self.rect.left = 0
+            
         
+      
     def update(self,dt):
         keys = pygame.key.get_pressed()
         recent_keys = pygame.key.get_just_pressed()
@@ -30,9 +42,10 @@ class Player(pygame.sprite.Sprite):
         self.direction.y = int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP])
         self.direction = self.direction.normalize() if self.direction else self.direction
         self.rect.center += self.direction * self.speed * dt
-        
+        self.movement()
+            
         if recent_keys[pygame.K_SPACE] and self.can_shoot:
-            Laser(laser_surf, self.rect.midtop, all_sprites)
+            Laser(laser_surf, self.rect.midtop, (all_sprites, laser_sprites))
             self.can_shoot = False
             self.laser_shoot_time = pygame.time.get_ticks()
             
@@ -59,7 +72,7 @@ class Laser(pygame.sprite.Sprite):
     
     def update(self, dt):
         ## i need to parse the dt to become framerate-independent
-        self.rect.centery -= 400 * dt
+        self.rect.centery -= 800 * dt
         if self.rect.bottom < 0 :
             self.kill()
             
@@ -79,6 +92,33 @@ class Meteor(pygame.sprite.Sprite):
         if pygame.time.get_ticks() - self.meteor_time > self.lifetime or self.rect.top > window_height :
             self.kill()
 
+class Heart(pygame.sprite.Sprite):
+
+    def __init__(self,surf,groups):
+        super().__init__(groups)
+        self.image = surf
+        self.start_time = pygame.time.get_ticks()
+        self.lifetime = 1600
+        self.rect =  self.image.get_frect(center = (randint(0, window_width ),randint(-200, -100)))
+        self.direction = pygame.Vector2(uniform(-0.4, 0.4), 1)
+        self.speed = randint(400,500)
+    def update(self,dt):
+        self.rect.center += self.direction * self.speed * dt
+        if pygame.time.get_ticks() - self.start_time > self.lifetime :
+            self.kill()
+
+def collisions():
+    
+    collisions_sprites = pygame.sprite.spritecollide(player, meteor_sprites,True)
+    if collisions_sprites:
+        pygame.quit()
+        sys.exit()
+        
+    for laser in laser_sprites:
+        collide_sprites = pygame.sprite.spritecollide(laser,meteor_sprites, True)
+        if collide_sprites:
+            laser.kill()
+    
 #General setup
 pygame.init()
 window_width = 1280
@@ -92,7 +132,11 @@ laser_surf = pygame.image.load('images/laser.png').convert_alpha()
 star_surf = pygame.image.load('images/star.png').convert_alpha()
 meteor_surf =pygame.image.load('images/meteor.png').convert_alpha()
 
+
+
 all_sprites = pygame.sprite.Group()
+meteor_sprites = pygame.sprite.Group()
+laser_sprites = pygame.sprite.Group()
 
 def load_and_scale_planet(path, size):
     image = pygame.image.load(path).convert_alpha()
@@ -101,7 +145,7 @@ def load_and_scale_planet(path, size):
 pla1 = load_and_scale_planet('images/mars.png',(15,15))
 pla2 = load_and_scale_planet('images/neptune.png',(30,15))
 pla3 = load_and_scale_planet('images/blue.png',(15,15))
-
+heart = load_and_scale_planet('images/heart.png', (100,100))
 for i in range(10):
     if i % 2 == 0:
         Planet(all_sprites,pla1)
@@ -122,6 +166,10 @@ player = Player(all_sprites)
 meteor_event = pygame.event.custom_type()
 pygame.time.set_timer(meteor_event, 300)
 
+#make extra life
+heart_event = pygame.event.custom_type()
+pygame.time.set_timer(heart_event,3000)
+
 while True:
     # make a delta time to second
     dt = clock.tick(200) / 1000
@@ -131,10 +179,19 @@ while True:
             pygame.quit()
             sys.exit()
         if event.type == meteor_event:
-            Meteor(meteor_surf,all_sprites)
+            Meteor(meteor_surf,(all_sprites,meteor_sprites))
+        if event.type == heart_event:
+            #classify in two groups doesn't matter all sprites for display
+            # meteor sprites for collision event
+            Heart(heart, all_sprites)
     #update
     all_sprites.update(dt)
+    collisions()
+    
     #draw the game
     display_surface.fill('gray')
     all_sprites.draw(display_surface)
+    
+
+    
     pygame.display.update()
