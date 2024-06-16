@@ -40,3 +40,11 @@ surface.get_frect(pos)
 ## pygame.sprite.Sprite
 
 ## blit is for each surface, for group draw will be better
+
+# Working with time
+## interval timer
+## triggers every x seconds
+## create event set a timer
+
+## custom timer
+## capture the time start of game
