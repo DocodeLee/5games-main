@@ -125,9 +125,21 @@ def collisions():
     heart_collide = pygame.sprite.spritecollide(player,heart_sprites, True)
     if heart_collide and player.life < 2 :
         player.life += 1
-    
 
-        
+def display_score():
+       current = pygame.time.get_ticks() // 100
+       text_surf = score_font.render(str(current), True, (255, 51, 153))
+       padding = 10
+       text_rect = text_surf.get_frect(midbottom = ((window_width /2) , window_height - 20))
+
+       display_surface.blit(text_surf,text_rect)
+       pygame.draw.rect(display_surface,(255, 51, 153),text_rect.inflate(30, padding * 1), 5 , 10)
+def display_life():
+    life = player.life
+    
+    text_surf = life_font.render(str(f" LIFE : {life}"),True , (255 ,51, 153))
+    text_rect = text_surf.get_rect(topleft = (0,0))
+    display_surface.blit(text_surf,text_rect)
     
     
 #General setup
@@ -144,8 +156,8 @@ star_surf = pygame.image.load('images/star.png').convert_alpha()
 meteor_surf =pygame.image.load('images/meteor.png').convert_alpha()
 
 #font
-font = pygame.font.Font('images/Oxanium-Bold.ttf', 20)
-text_surf = font.render('text',True, (255, 51, 153))
+score_font= pygame.font.Font('images/Oxanium-Bold.ttf', 40)
+life_font = pygame.font.Font('images/Oxanium-Bold.ttf', 30)
 
 all_sprites = pygame.sprite.Group()
 meteor_sprites = pygame.sprite.Group()
@@ -204,8 +216,11 @@ while True:
     
     #draw the game
     display_surface.fill((179, 224, 255))
+    display_score()
     all_sprites.draw(display_surface)
+    display_life()
+
+     
     
-    display_surface.blit(text_surf,(0,0))
     
     pygame.display.update()
