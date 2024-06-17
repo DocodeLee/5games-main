@@ -10,6 +10,7 @@ class Player(pygame.sprite.Sprite):
         self.rect =  self.image.get_frect(center=(window_width / 2, window_height / 2))
         self.direction = pygame.math.Vector2()
         self.speed = 500
+        self.life = 2
         
         # cooldown
         self.can_shoot =True
@@ -33,7 +34,8 @@ class Player(pygame.sprite.Sprite):
         if self.rect.left< 0 :
             self.rect.left = 0
             
-        
+    def increase_life(self):
+        self.life += 1
       
     def update(self,dt):
         keys = pygame.key.get_pressed()
@@ -111,13 +113,22 @@ def collisions():
     
     collisions_sprites = pygame.sprite.spritecollide(player, meteor_sprites,True)
     if collisions_sprites:
-        pygame.quit()
-        sys.exit()
+        player.life -= 1
+        if player.life == 0 :
+            pygame.quit()
+            sys.exit()
         
     for laser in laser_sprites:
         collide_sprites = pygame.sprite.spritecollide(laser,meteor_sprites, True)
         if collide_sprites:
             laser.kill()
+    heart_collide = pygame.sprite.spritecollide(player,heart_sprites, True)
+    if heart_collide and player.life < 2 :
+        player.life += 1
+    
+    print(player.life)
+        
+    
     
 #General setup
 pygame.init()
@@ -137,6 +148,7 @@ meteor_surf =pygame.image.load('images/meteor.png').convert_alpha()
 all_sprites = pygame.sprite.Group()
 meteor_sprites = pygame.sprite.Group()
 laser_sprites = pygame.sprite.Group()
+heart_sprites = pygame.sprite.Group()
 
 def load_and_scale_planet(path, size):
     image = pygame.image.load(path).convert_alpha()
@@ -168,7 +180,7 @@ pygame.time.set_timer(meteor_event, 300)
 
 #make extra life
 heart_event = pygame.event.custom_type()
-pygame.time.set_timer(heart_event,3000)
+pygame.time.set_timer(heart_event,2000)
 
 while True:
     # make a delta time to second
@@ -183,7 +195,7 @@ while True:
         if event.type == heart_event:
             #classify in two groups doesn't matter all sprites for display
             # meteor sprites for collision event
-            Heart(heart, all_sprites)
+            Heart(heart,(heart_sprites, all_sprites))
     #update
     all_sprites.update(dt)
     collisions()
