@@ -126,7 +126,7 @@ def collisions():
     if heart_collide and player.life < 2 :
         player.life += 1
     
-    print(player.life)
+
         
     
     
@@ -143,7 +143,9 @@ laser_surf = pygame.image.load('images/laser.png').convert_alpha()
 star_surf = pygame.image.load('images/star.png').convert_alpha()
 meteor_surf =pygame.image.load('images/meteor.png').convert_alpha()
 
-
+#font
+font = pygame.font.Font('images/Oxanium-Bold.ttf', 20)
+text_surf = font.render('text',True, (255, 51, 153))
 
 all_sprites = pygame.sprite.Group()
 meteor_sprites = pygame.sprite.Group()
@@ -176,7 +178,7 @@ player = Player(all_sprites)
 # custom events -> meteor event
 ## make a custom event and set the timer for repeat
 meteor_event = pygame.event.custom_type()
-pygame.time.set_timer(meteor_event, 300)
+pygame.time.set_timer(meteor_event, 100)
 
 #make extra life
 heart_event = pygame.event.custom_type()
@@ -201,9 +203,9 @@ while True:
     collisions()
     
     #draw the game
-    display_surface.fill('gray')
+    display_surface.fill((179, 224, 255))
     all_sprites.draw(display_surface)
     
-
+    display_surface.blit(text_surf,(0,0))
     
     pygame.display.update()
