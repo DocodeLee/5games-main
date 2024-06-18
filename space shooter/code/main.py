@@ -43,6 +43,7 @@ class Player(pygame.sprite.Sprite):
         self.life += 1
       
     def update(self,dt):
+        
         keys = pygame.key.get_pressed()
         recent_keys = pygame.key.get_just_pressed()
         self.direction.x = int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT])
@@ -55,6 +56,7 @@ class Player(pygame.sprite.Sprite):
             Laser(laser_surf, self.rect.midtop, (all_sprites, laser_sprites))
             self.can_shoot = False
             self.laser_shoot_time = pygame.time.get_ticks()
+            laser_sound.play()
             
 
         self.laser_timer()
@@ -140,7 +142,8 @@ class AnimatedExplosion(pygame.sprite.Sprite):
         self.frame_index = 0
         self.image = frames[self.frame_index] 
         self.rect = self.image.get_frect(center = pos)
-
+        explosion_sound.play()
+        
     def update(self, dt):
         self.frame_index += 20* dt
         if self.frame_index < len(self.frames):
@@ -153,15 +156,19 @@ def collisions():
     collisions_sprites = pygame.sprite.spritecollide(player, meteor_sprites,True, pygame.sprite.collide_mask)
     if collisions_sprites:
         player.life -= 1
+        
         if player.life == 0 :
+            
             pygame.quit()
             sys.exit()
         
     for laser in laser_sprites:
         collide_sprites = pygame.sprite.spritecollide(laser,meteor_sprites, True, pygame.sprite.collide_mask)
         if collide_sprites:
+            
             laser.kill()
             AnimatedExplosion(explosion_frame,laser.rect.midtop,all_sprites)
+            explosion_sound.play()
     heart_collide = pygame.sprite.spritecollide(player,heart_sprites, True, pygame.sprite.collide_mask)
     if heart_collide and player.life < 2 :
         player.life += 1
@@ -203,7 +210,16 @@ life_font = pygame.font.Font('images/Oxanium-Bold.ttf', 30)
 #explosion
 explosion_frame =  [pygame.image.load(join('images', 'explosion', f'{i}.png')).convert_alpha() for i in range(21)]
 
- 
+##sound
+
+laser_sound = pygame.mixer.Sound(join('audio','laser.wav'))
+laser_sound.set_volume(0.4)
+explosion_sound= pygame.mixer.Sound(join('audio','explosion.wav'))
+explosion_sound.set_volume(0.5)
+
+game_music = pygame.mixer.Sound(join('audio','game_music.wav'))
+game_music.set_volume(0.01)
+game_music.play(loops = -1)
 
 all_sprites = pygame.sprite.Group()
 meteor_sprites = pygame.sprite.Group()
@@ -246,6 +262,7 @@ while True:
     # make a delta time to second
     dt = clock.tick(200) / 1000
     #event loop
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
