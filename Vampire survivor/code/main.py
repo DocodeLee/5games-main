@@ -19,7 +19,7 @@ class Game:
         for i in range(6):
             x, y = randint(0,WINDOW_WIDTH) , randint(0, WINDOW_HEIGHT)
             w, h = randint(50,100), randint(100,200)
-            CollisonSprite((x,y), (w,h), self.collison_sprites)
+            CollisonSprite((x,y), (w,h), (self.all_sprites,self.collison_sprites))
             
     def run(self):
         while self.running:
