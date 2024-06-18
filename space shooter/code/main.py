@@ -1,6 +1,7 @@
 import pygame
 import sys
 from random import randint, uniform
+from os.path import join
 
 
 class Player(pygame.sprite.Sprite):
@@ -8,6 +9,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__(groups)
         self.image = pygame.image.load('images/player.png').convert_alpha()
         self.rect =  self.image.get_frect(center=(window_width / 2, window_height / 2))
+        self.mask = pygame.mask.from_surface(self.image)
         self.direction = pygame.math.Vector2()
         self.speed = 500
         self.life = 2
@@ -16,6 +18,9 @@ class Player(pygame.sprite.Sprite):
         self.can_shoot =True
         self.laser_shoot_time = 0
         self.cooldown_duration = 200
+        
+        # mask
+       
     
     def laser_timer(self):
         if not self.can_shoot:
@@ -59,6 +64,8 @@ class Star(pygame.sprite.Sprite):
         self.image = surf
         self.rect = self.image.get_frect(center = (randint(0,window_width),randint(0, window_height)))
 
+     
+        
 class Planet(pygame.sprite.Sprite):
     def __init__(self, groups, surf):
         super().__init__(groups)
@@ -70,8 +77,10 @@ class Laser(pygame.sprite.Sprite):
     def __init__(self, surf, pos,  groups):
         super().__init__(groups)
         self.image = surf
+        
         self.rect = self.image.get_frect(midbottom = pos )
-    
+        
+        
     def update(self, dt):
         ## i need to parse the dt to become framerate-independent
         self.rect.centery -= 800 * dt
@@ -82,36 +91,66 @@ class Meteor(pygame.sprite.Sprite):
     
     def __init__(self,surf,groups):
         super().__init__(groups)
+        self.original_surf = surf
         self.image = surf
+        self.rotation = 0
         self.meteor_time = pygame.time.get_ticks()
         self.lifetime = 2000
         self.rect =  self.image.get_frect(center = (randint(0, window_width ),randint(-200, -100)))
         self.direction = pygame.Vector2(uniform(-0.5, 0.5),1)
-        self.speed = randint(500,800)
+        self.speed = randint(400,500)
+        
+        
+        
+        
         
     def update(self, dt):
         self.rect.center += self.direction * self.speed * dt
         if pygame.time.get_ticks() - self.meteor_time > self.lifetime or self.rect.top > window_height :
             self.kill()
+        
+        # rotation
+        self.rotation += randint(60,80) * dt
+        self.image = pygame.transform.rotozoom(self.original_surf,self.rotation, 1)
+        self.rect = self.image.get_frect(center = self.rect.center)
 
 class Heart(pygame.sprite.Sprite):
 
     def __init__(self,surf,groups):
         super().__init__(groups)
         self.image = surf
+        
         self.start_time = pygame.time.get_ticks()
         self.lifetime = 1600
         self.rect =  self.image.get_frect(center = (randint(0, window_width ),randint(-200, -100)))
         self.direction = pygame.Vector2(uniform(-0.4, 0.4), 1)
         self.speed = randint(400,500)
+        
+        
+        
     def update(self,dt):
         self.rect.center += self.direction * self.speed * dt
         if pygame.time.get_ticks() - self.start_time > self.lifetime :
             self.kill()
 
+class AnimatedExplosion(pygame.sprite.Sprite):
+    def __init__(self, frames, pos, groups):
+        super().__init__(groups)
+        self.frames = frames
+        self.frame_index = 0
+        self.image = frames[self.frame_index] 
+        self.rect = self.image.get_frect(center = pos)
+
+    def update(self, dt):
+        self.frame_index += 20* dt
+        if self.frame_index < len(self.frames):
+            self.image = self.frames[int(self.frame_index) % len(self.frames)]
+        else:
+            self.kill()
+
 def collisions():
     
-    collisions_sprites = pygame.sprite.spritecollide(player, meteor_sprites,True)
+    collisions_sprites = pygame.sprite.spritecollide(player, meteor_sprites,True, pygame.sprite.collide_mask)
     if collisions_sprites:
         player.life -= 1
         if player.life == 0 :
@@ -119,10 +158,11 @@ def collisions():
             sys.exit()
         
     for laser in laser_sprites:
-        collide_sprites = pygame.sprite.spritecollide(laser,meteor_sprites, True)
+        collide_sprites = pygame.sprite.spritecollide(laser,meteor_sprites, True, pygame.sprite.collide_mask)
         if collide_sprites:
             laser.kill()
-    heart_collide = pygame.sprite.spritecollide(player,heart_sprites, True)
+            AnimatedExplosion(explosion_frame,laser.rect.midtop,all_sprites)
+    heart_collide = pygame.sprite.spritecollide(player,heart_sprites, True, pygame.sprite.collide_mask)
     if heart_collide and player.life < 2 :
         player.life += 1
 
@@ -134,6 +174,7 @@ def display_score():
 
        display_surface.blit(text_surf,text_rect)
        pygame.draw.rect(display_surface,(255, 51, 153),text_rect.inflate(30, padding * 1), 5 , 10)
+
 def display_life():
     life = player.life
     
@@ -158,6 +199,11 @@ meteor_surf =pygame.image.load('images/meteor.png').convert_alpha()
 #font
 score_font= pygame.font.Font('images/Oxanium-Bold.ttf', 40)
 life_font = pygame.font.Font('images/Oxanium-Bold.ttf', 30)
+
+#explosion
+explosion_frame =  [pygame.image.load(join('images', 'explosion', f'{i}.png')).convert_alpha() for i in range(21)]
+
+ 
 
 all_sprites = pygame.sprite.Group()
 meteor_sprites = pygame.sprite.Group()
