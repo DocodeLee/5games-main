@@ -1,36 +1,47 @@
 from settings import *
-import pygame
-import sys
-from random import randint, uniform
-from os.path import join
+from player import Player
+from random import randint
+from sprites import CollisonSprite
 
-class Player(pygame.sprite.Sprite):
-    def __init__(self, groups):
-        super().__init__(groups)
-        self.image = pygame.image.load('images/player/down/0.png')
-        self.rect = self.image.get_frect(center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2))
-        self.mask = pygame.mask.from_surface(self.image)
+class Game:
+    def __init__(self):
+        pygame.init()
+        self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        pygame.display.set_caption("Vampire Sur")
+        self.clock = pygame.time.Clock()
+        self.running = True
+        # groups
+        self.all_sprites = pygame.sprite.Group()
+        self.collison_sprites = pygame.sprite.Group()
+        
+        #sprites
+        self.player = Player((400,300),self.all_sprites,self.collison_sprites)
+        for i in range(6):
+            x, y = randint(0,WINDOW_WIDTH) , randint(0, WINDOW_HEIGHT)
+            w, h = randint(50,100), randint(100,200)
+            CollisonSprite((x,y), (w,h), self.collison_sprites)
+            
+    def run(self):
+        while self.running:
+            
+            dt = self.clock.tick() / 1000
     
-pygame.init()
-display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-pygame.display.set_caption("Vampire Sur")
-clock = pygame.time.Clock()
-
-all_sprites = pygame.sprite.Group()
-
-player = Player(all_sprites)
-
-while True:
-    dt = clock.tick(200) / 1000
-    
-    for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+            
+            #update
+            
+            self.all_sprites.update(dt)
+            
+            #draw
+            self.display_surface.fill((0,0,0))
+            self.all_sprites.draw(self.display_surface)
+            pygame.display.update()
+            
+        pygame.quit()
                 
-    
-    
-    all_sprites.update(dt)
-    display_surface.fill((179, 224, 255))
-    all_sprites.draw(display_surface)
-    pygame.display.update()
+
+if __name__ == '__main__':
+    game = Game()
+    game.run()
