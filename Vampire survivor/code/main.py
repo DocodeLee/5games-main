@@ -37,6 +37,7 @@ class Game:
         for marker in map.get_layer_by_name('Entities'):
             if marker.name == 'Player':
                 self.player = Player((marker.x, marker.y), self.all_sprites, self.collison_sprites)
+                self.gun =Gun(self.player,self.all_sprites)
     
     
         
