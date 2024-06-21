@@ -28,14 +28,36 @@ class Game:
         
         #enemy timer
         self.enemy_event = pygame.event.custom_type()
-        pygame.time.set_timer(self.enemy_event,300)
+        pygame.time.set_timer(self.enemy_event, 300)
         self.spawn_position = []
         
+        
+        #audio
+        self.shoot_sound = pygame.mixer.Sound(join('audio', 'shoot.wav'))
+        self.shoot_sound.set_volume(0.3)
+        self.impact_sound = pygame.mixer.Sound(join('audio','impact.ogg'))
+        self.music = pygame.mixer.Sound(join('audio','music.wav'))
+        self.music.set_volume(0.3)
+        self.music.play(loops = -1)
     
         self.load_images()
         self.setup()
-        
-        
+    
+    def bullet_collision(self):
+        for bullet in self.bullet_sprites:
+            collisions_sprites = pygame.sprite.spritecollide(bullet, self.enemies_sprites , False, pygame.sprite.collide_mask)
+            if collisions_sprites:
+                self.impact_sound.play()
+                for sprite in collisions_sprites:
+                    sprite.destroy()
+                bullet.kill()
+    
+    
+    def player_collision(self):
+        if pygame.sprite.spritecollide(self.player,self.enemies_sprites, False, pygame.sprite.collide_mask):
+            self.running = False
+            
+            
     def load_images(self):
         self.bullet_surf = pygame.image.load(join('images','gun', 'bullet.png')).convert_alpha()
         
@@ -51,6 +73,7 @@ class Game:
 
     def input(self):
         if pygame.mouse.get_pressed()[0] and self.can_shoot:
+            self.shoot_sound.play()
             pos = self.gun.rect.center + self.gun.player_direction * 20
             Bullet(self.bullet_surf, pos, self.gun.player_direction, (self.all_sprites,self.bullet_sprites))
             self.can_shoot = False
@@ -99,10 +122,13 @@ class Game:
             self.gun_timer()
             self.input()
             self.all_sprites.update(dt)
+            self.bullet_collision()
+            self.player_collision()
             
             #draw
             self.display_surface.fill((0,0,0))
             self.all_sprites.draw(self.player.rect.center)
+            
             pygame.display.update()
             
             
