@@ -22,7 +22,7 @@ class Game:
         #gun timer
         self.can_shoot = True
         self.shoot_time = 0
-        self.gun_cooldown = 300
+        self.gun_cooldown = 200
         
     def load_images(self):
         self.bullet_surf = pygame.image.load(join('images','gun', 'bullet.png')).convert_alpha()
@@ -57,6 +57,7 @@ class Game:
             if marker.name == 'Player':
                 self.player = Player((marker.x, marker.y), self.all_sprites, self.collison_sprites)
                 self.gun =Gun(self.player,self.all_sprites)
+            
     
     
         
@@ -78,6 +79,7 @@ class Game:
             self.display_surface.fill((0,0,0))
             self.all_sprites.draw(self.player.rect.center)
             pygame.display.update()
+            print(self.bullet_sprites)
             
         pygame.quit()
                 
