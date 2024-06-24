@@ -1,5 +1,5 @@
 from settings import * 
-from player import Player
+from sprites import *
 
 class Game:
     def __init__(self):
@@ -13,7 +13,9 @@ class Game:
         # sprites
         self.all_sprites = pygame.sprite.Group()
         self.paddle_sprites = pygame.sprite.Group()
-        
+        self.player = Player((self.all_sprites, self.paddle_sprites))
+        self.ball = Ball(self.all_sprites,self.paddle_sprites) # ball has access to the paddle_sprites
+        Opponent((self.all_sprites,self.paddle_sprites),self.ball)
     
     def run(self):
         while self.running:
@@ -24,6 +26,7 @@ class Game:
             
             # update
             self.all_sprites.update(dt)
+            
             
             #draw
             self.display_surface.fill(COLORS['bg'])
